@@ -5,22 +5,41 @@ import { BrowserRouter, Switch, Route } from "react-router-dom";
 import Shop from "./page/Shop/Shop";
 import Navbar from "./components/navbar/Navbar";
 import Signin from "./page/Signin/Signin";
+import { auth } from "./firebase/Firebase";
 
-function App() {
-  return (
-    <div className="App">
-      <BrowserRouter>
-        <React.Fragment>
-          <Navbar />
-          <Switch>
-            <Route path="/" exact component={Homepage} />
-            <Route path="/shop" exact component={Shop} />
-            <Route path="/signin" exact component={Signin} />
-          </Switch>
-        </React.Fragment>
-      </BrowserRouter>
-    </div>
-  );
+class App extends React.Component {
+  state = {
+    currentUser: null,
+  };
+
+  unsubscribedFromAuth = null;
+
+  componentDidMount() {
+    this.unsubscribedFromAuth = auth.onAuthStateChanged((user) => {
+      this.setState({ currentUser: user });
+    });
+  }
+
+  componentWillUnmount() {
+    this.unsubscribedFromAuth();
+  }
+
+  render() {
+    return (
+      <div className="App">
+        <BrowserRouter>
+          <React.Fragment>
+            <Navbar currentUser={this.state.currentUser} />
+            <Switch>
+              <Route path="/" exact component={Homepage} />
+              <Route path="/shop" exact component={Shop} />
+              <Route path="/signin" exact component={Signin} />
+            </Switch>
+          </React.Fragment>
+        </BrowserRouter>
+      </div>
+    );
+  }
 }
 
 export default App;
