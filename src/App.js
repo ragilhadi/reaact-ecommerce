@@ -4,8 +4,8 @@ import Homepage from "./page/Homepage/Homepage";
 import { BrowserRouter, Switch, Route } from "react-router-dom";
 import Shop from "./page/Shop/Shop";
 import Navbar from "./components/navbar/Navbar";
-import Signin from "./page/Signin/Signin";
 import { auth, createUserProfileDocument } from "./firebase/Firebase";
+import SigninSignUp from "./page/Signin-Signup/SigninSignUp";
 
 class App extends React.Component {
   state = {
@@ -15,8 +15,21 @@ class App extends React.Component {
   unsubscribedFromAuth = null;
 
   componentDidMount() {
-    this.unsubscribedFromAuth = auth.onAuthStateChanged(async (user) => {
-      createUserProfileDocument(user);
+    this.unsubscribedFromAuth = auth.onAuthStateChanged(async (userAuth) => {
+      if (userAuth) {
+        const userRef = await createUserProfileDocument(userAuth);
+
+        userRef.onSnapshot((snapShot) => {
+          this.setState({
+            currentUser: {
+              id: snapShot.id,
+              ...snapShot.data(),
+            },
+          });
+        });
+      }
+
+      this.setState({ currentUser: userAuth });
     });
   }
 
@@ -33,7 +46,7 @@ class App extends React.Component {
             <Switch>
               <Route path="/" exact component={Homepage} />
               <Route path="/shop" exact component={Shop} />
-              <Route path="/signin" exact component={Signin} />
+              <Route path="/signin" exact component={SigninSignUp} />
             </Switch>
           </React.Fragment>
         </BrowserRouter>
